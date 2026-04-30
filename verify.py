@@ -1,5 +1,3 @@
-#!/home/rieyu/projects/masking/bin/python3
-
 from argparse import ArgumentParser, FileType
 from helpers import *
 from CircuitGraph import CircuitGraph

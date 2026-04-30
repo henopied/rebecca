@@ -1,8 +1,8 @@
 # rebecca
 ```
-usage: ./verify [-h] [-v] [-p <netlist> <top module>] [-o]
-                [-c <netlist> <order> <labeling> <mode>]
-                [-i <netlist> <order> <labeling>]
+usage: uv run verify.py [-h] [-v] [-p <netlist> <top module>] [-o]
+                        [-c <netlist> <order> <labeling> <mode>]
+                        [-i <netlist> <order> <labeling>]
 
 A tool for checking if a given netlist is side-channel analysis resistant
 
