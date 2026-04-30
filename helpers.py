@@ -146,7 +146,7 @@ def generate_optimized_labeling(filename):
 
 def parse_verilog(verilog_files, top_module, template_file="template/yosys.txt"):
     template = Template(filename=template_file)
-    basename = "".join(verilog_files.split(".")[:-1])
+    basename = ".".join(verilog_files.split(".")[:-1])
     files = verilog_files if type(verilog_files) == list else [verilog_files]
     yosys_script = template.render(input_files=files, top_module=top_module)
     with open("tmp/synth.ys", "w") as filename:
