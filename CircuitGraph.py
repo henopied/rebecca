@@ -26,8 +26,8 @@ class CircuitGraph(object):
             top_module = json_object["top_module"]
             self.__parse_json(json_object["modules"][top_module])
         else:
-            with open(json_file, "r") as filename:
-                json_object = load(filename)
+            with open(json_file, "r") as f:
+                json_object = load(f)
             top_module = json_object["top_module"]
             self.__parse_json(json_object["modules"][top_module])
 
@@ -159,7 +159,7 @@ class CircuitGraph(object):
                 self.__redundant_circuit["wires"][w]["to"],
             )
 
-        isolated_nodes = nx.isolates(self.__redundant_graph)
+        isolated_nodes = list(nx.isolates(self.__redundant_graph))
         logger.warn("remove isolates: {}".format(isolated_nodes))
         self.__redundant_graph.remove_nodes_from(isolated_nodes)
 
@@ -169,20 +169,17 @@ class CircuitGraph(object):
                 if "y_" not in self.__labeling[str(n)][0]:
                     self.__circuit["cells"][n] = {}
                     self.__circuit["cells"][n]["type"] = node_type
-                    self.__graph.add_node(n)
-                    self.__graph[n]["node_type"] = node_type
+                    self.__graph.add_node(n, node_type=node_type)
                 else:
                     logger.info("port add: skip node {}".format(n))
             elif node_type in ("and", "xor", "dff", "dffsr"):
                 self.__circuit["cells"][n] = {}
                 self.__circuit["cells"][n]["type"] = node_type
-                self.__graph.add_node(n)
-                self.__graph[n]["node_type"] = node_type
+                self.__graph.add_node(n, node_type=node_type)
             elif node_type == "or":
                 self.__circuit["cells"][n] = {}
                 self.__circuit["cells"][n]["type"] = "and"
-                self.__graph.add_node(n)
-                self.__graph[n]["node_type"] = node_type
+                self.__graph.add_node(n, node_type=node_type)
             elif node_type == "mux":
                 self.__circuit["cells"][n] = {}
                 self.__circuit["cells"][n]["type"] = "mux"
@@ -194,6 +191,7 @@ class CircuitGraph(object):
             else:
                 logger.error("unknown type {} of the node {}".format(node_type, n))
                 exit()
+
         for n in self.__redundant_graph.nodes():
             node_type = self.__redundant_circuit["cells"][n]["type"]
             if node_type == "not":
@@ -210,8 +208,8 @@ class CircuitGraph(object):
                 self.__graph.add_edge(*e)
 
         for n in self.__graph.nodes():
-            s = len(self.__graph.successors(n))
-            p = len(self.__graph.predecessors(n))
+            s = len(list(self.__graph.successors(n)))
+            p = len(list(self.__graph.predecessors(n)))
             if s == 0 and p == 0:
                 logger.warn("Construct graph: node {} is not connected".format(n))
             t = self.__circuit["cells"][n]
@@ -227,9 +225,8 @@ class CircuitGraph(object):
             graph = self.__graph
         dot = "strict digraph  {\n"
         for e in graph.edges():
-            if e[1] != "node_type":
-                i, o = str(e[0]), str(e[1])
-                dot += "{} -> {};\n".format(i, o)
+            i, o = str(e[0]), str(e[1])
+            dot += "{} -> {};\n".format(i, o)
         dot += "}\n"
         with open(fname if fname else "tmp/graph.dot", "w") as filename:
             filename.write(dot)
@@ -244,9 +241,8 @@ class CircuitGraph(object):
     def get_all_successors(self, node):
         successors = []
         for p in self.__graph.successors(node):
-            if p != "node_type":
-                successors.append(p)
-                successors += self.get_all_successors(p)
+            successors.append(p)
+            successors += self.get_all_successors(p)
         return set(successors)
 
     def get_graph(self):
@@ -260,9 +256,7 @@ class CircuitGraph(object):
 
     def get_outputs(self):
         outputs = []
-        trash = set(["node_type"])
         for n in self.__graph.nodes():
-            if n != "node_type":
-                if len(set(self.__graph.successors(n)) - trash) == 0:
-                    outputs += [n]
+            if len(list(self.__graph.successors(n))) == 0:
+                outputs += [n]
         return outputs

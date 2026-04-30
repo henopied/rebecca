@@ -25,7 +25,7 @@ class Z3Checker(object):
         variables_activation = {}
 
         for node in self.__circuit.nodes():
-            if self.__circuit[node]["node_type"] == "port":
+            if self.__circuit.nodes[node]["node_type"] == "port":
                 for label in self.__labels[str(node)]:
                     variables += [label]
                     label_type = label.split("_")[0]
@@ -110,7 +110,7 @@ class Z3Checker(object):
 
     def __process_circuit(self):
         for node in self.__circuit.nodes():
-            node_type = self.__circuit[node]["node_type"]
+            node_type = self.__circuit.nodes[node]["node_type"]
             if node_type == "port":
                 self.__process_port_gate(node)
             elif node_type in ("xor", "xnor"):
@@ -128,7 +128,7 @@ class Z3Checker(object):
                 exit(-1)
 
     def __process_linear_gate(self, gate):
-        pred = self.__circuit.predecessors(gate)
+        pred = list(self.__circuit.predecessors(gate))
         if len(pred) == 2:
             in1, in2 = pred
             self.__s.add(
@@ -180,7 +180,7 @@ class Z3Checker(object):
             exit(-1)
 
     def __process_nonlinear_gate(self, gate):
-        pred = self.__circuit.predecessors(gate)
+        pred = list(self.__circuit.predecessors(gate))
         if len(pred) == 2:
             in1, in2 = pred
             self.__s.add(
@@ -241,7 +241,7 @@ class Z3Checker(object):
             exit(-1)
 
     def __process_not_gate(self, gate):
-        pred = self.__circuit.predecessors(gate)
+        pred = list(self.__circuit.predecessors(gate))
         if len(pred) == 1:
             in1 = pred[0]
             self.__s.add(
@@ -284,7 +284,7 @@ class Z3Checker(object):
             self.__s.add(And(lst + [Not(v) for v in neg_lst]))
 
     def __process_register_gate(self, gate):
-        pred = self.__circuit.predecessors(gate)
+        pred = list(self.__circuit.predecessors(gate))
         if len(pred) == 1:
             in1 = pred[0]
             self.__s.add(
